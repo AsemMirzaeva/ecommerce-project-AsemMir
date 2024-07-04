@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package proproto;
+package product;
 
-option go_package = "./proproto";
+option go_package = "./productpb";
 
 service ProductService {
     rpc AddProduct (AddProductRequest) returns (AddProductResponse);

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"user-service/config"
+	"user-service/internal"
 	"user-service/pkg/logger"
 	userpb "user-service/protos/user-service"
 	"user-service/service"
@@ -44,7 +45,9 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(grpc.StreamInterceptor(internal.StreamInterceptor),
+		grpc.UnaryInterceptor(internal.UnaryInterceptor))
+
 	userpb.RegisterUserServiceServer(s, userService)
 	reflection.Register(s)
 

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"order-service/config"
+	"order-service/internal"
 	"order-service/pkg/logger"
 	orderpb "order-service/protos/order-service"
 	"order-service/service"
@@ -51,7 +52,9 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(grpc.StreamInterceptor(internal.StreamInterceptor),
+		grpc.UnaryInterceptor(internal.UnaryInterceptor))
+
 	orderpb.RegisterOrderServiceServer(s, orderService)
 	reflection.Register(s)
 

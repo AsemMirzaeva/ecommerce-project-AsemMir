@@ -104,19 +104,19 @@ func (s *ProductService) ListProducts(req *pbp.ListProductsRequest, stream pbp.P
 		return errors.New("limit must be greater than zero")
 	}
 
-	Products, err := s.storage.Product().ListProducts(limit, page)
+	products, err := s.storage.Product().ListProducts(limit, page)
 	if err != nil {
 		s.logger.Error(err.Error())
 		return err
 	}
 
-	for _, Product := range Products {
+	for _, product := range products {
 		err := stream.Send(&pbp.ListProductsResponse{
-			Id:          Product.ID,
-			Name:        Product.Name,
-			Description: Product.Description,
-			Price:       Product.Price,
-			Stock:       Product.Stock,
+			Id:          product.ID,
+			Name:        product.Name,
+			Description: product.Description,
+			Price:       product.Price,
+			Stock:       product.Stock,
 		})
 		if err != nil {
 			return err

@@ -20,7 +20,7 @@ func NewPostgresRepository(db *sql.DB) *PostgresRepository {
 
 func (r *PostgresRepository) AddProduct(product *models.Product) (*models.Product, error) {
 	id := uuid.New()
-	query := `INSERT INTO products (id, name, description, price, stock, created_at::text, updated_at::text) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id, name, description, price, stock, created_at, updated_at`
+	query := `INSERT INTO products (id, name, description, price, stock, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id, name, description, price, stock, created_at, updated_at`
 	err := r.db.QueryRow(query, id, product.Name, product.Description, product.Price, product.Stock).Scan(
 		&product.ID,
 		&product.Name,

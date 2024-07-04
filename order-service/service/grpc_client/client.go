@@ -7,7 +7,6 @@ import (
 	pbu "order-service/protos/user-service"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 type IServiceManager interface {
@@ -22,24 +21,22 @@ type serviceManager struct {
 }
 
 func New(cfg config.Config) (IServiceManager, error) {
-	// Dial to Product-service
+	// dail to Product-service
 	connProduct, err := grpc.Dial(
 		fmt.Sprintf("%s:%s", cfg.ProductServiceHost, cfg.ProductServicePort),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithInsecure(),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to dial Product service at %s:%s: %w", cfg.ProductServiceHost, cfg.ProductServicePort, err)
+		return nil, fmt.Errorf("user service dail host: %s port : %s", cfg.ProductServiceHost, cfg.ProductServicePort)
 	}
-
-	// Dial to User-service
+	// dail to User-service
 	connUser, err := grpc.Dial(
 		fmt.Sprintf("%s:%s", cfg.UserServiceHost, cfg.UserServicePort),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithInsecure(),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to dial User service at %s:%s: %w", cfg.UserServiceHost, cfg.UserServicePort, err)
+		return nil, fmt.Errorf("user service dail host: %s port : %s", cfg.UserServiceHost, cfg.UserServicePort)
 	}
-
 	return &serviceManager{
 		cfg:            cfg,
 		productService: pbp.NewProductServiceClient(connProduct),

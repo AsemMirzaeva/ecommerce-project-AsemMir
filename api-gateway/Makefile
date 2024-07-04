@@ -1,5 +1,9 @@
 CURRENT_DIR=$(shell pwd)
 
+run:
+	cd cmd && go run main.go
+
+
 build:
 	CGO_ENABLED=0 GOOS=linux go build -mod=vendor -a -installsuffix cgo -o ${CURRENT_DIR}/bin/${APP} ${APP_CMD_DIR}/main.go
 

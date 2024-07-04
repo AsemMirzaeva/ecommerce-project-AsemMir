@@ -1,5 +1,9 @@
 export POSTGRES_DB=postgres://postgres:1234@localhost:5432/gatewaydb?sslmode=disable
 
+run:
+	cd cmd && go run main.go
+
+
 gen-product:
 	protoc \
         --go_out=. \

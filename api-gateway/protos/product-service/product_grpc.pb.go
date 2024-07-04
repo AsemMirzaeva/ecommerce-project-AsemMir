@@ -4,7 +4,7 @@
 // - protoc             v3.21.12
 // source: protos/product-service/product.proto
 
-package proproto
+package productpb
 
 import (
 	context "context"
@@ -19,11 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	ProductService_AddProduct_FullMethodName    = "/proproto.ProductService/AddProduct"
-	ProductService_GetProduct_FullMethodName    = "/proproto.ProductService/GetProduct"
-	ProductService_UpdateProduct_FullMethodName = "/proproto.ProductService/UpdateProduct"
-	ProductService_DeleteProduct_FullMethodName = "/proproto.ProductService/DeleteProduct"
-	ProductService_ListProducts_FullMethodName  = "/proproto.ProductService/ListProducts"
+	ProductService_AddProduct_FullMethodName    = "/product.ProductService/AddProduct"
+	ProductService_GetProduct_FullMethodName    = "/product.ProductService/GetProduct"
+	ProductService_UpdateProduct_FullMethodName = "/product.ProductService/UpdateProduct"
+	ProductService_DeleteProduct_FullMethodName = "/product.ProductService/DeleteProduct"
+	ProductService_ListProducts_FullMethodName  = "/product.ProductService/ListProducts"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -259,7 +259,7 @@ func (x *productServiceListProductsServer) Send(m *ListProductsResponse) error {
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ProductService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "proproto.ProductService",
+	ServiceName: "product.ProductService",
 	HandlerType: (*ProductServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

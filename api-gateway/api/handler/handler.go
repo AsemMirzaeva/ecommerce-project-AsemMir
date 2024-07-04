@@ -7,11 +7,11 @@ import (
 )
 
 type Handler struct {
-	user    user.UserServiceClient
-	product prod.ProductServiceClient
-	order   ord.OrderServiceClient
+	userh    user.UserServiceClient
+	producth prod.ProductServiceClient
+	orderh   ord.OrderServiceClient
 }
 
 func NewHandler(user user.UserServiceClient, product prod.ProductServiceClient, order ord.OrderServiceClient) *Handler {
-	return &Handler{user: user, product: product}
+	return &Handler{userh: user, producth: product, orderh: order}
 }

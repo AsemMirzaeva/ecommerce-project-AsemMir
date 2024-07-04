@@ -1,9 +1,13 @@
 package handler
 
 import (
+	"api-gateway/api/handler/models"
 	prod "api-gateway/protos/product-service"
 	"context"
 	"fmt"
+	"io"
+	"log"
+	"math"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -145,9 +149,28 @@ func (h *ProductHandler) ListProducts(c *gin.Context) {
 	for {
 		product, err := stream.Recv()
 		if err != nil {
+			if err != io.EOF {
+				log.Printf("Error receiving product: %v", err)
+			}
 			break
 		}
 		products = append(products, *product)
 	}
-	c.JSON(http.StatusOK, products)
+
+	// Log the number of products retrieved (optional)
+	log.Printf("Retrieved %d products", len(products))
+	var result []models.Product
+	for _, i := range products {
+		if !math.IsNaN(float64(i.Price)) {
+			result = append(result, models.Product{
+				Id:          i.Id,
+				Name:        i.Name,
+				Description: i.Description,
+				Price:       i.Price,
+				Stock:       i.Stock,
+			})
+		}
+	}
+	fmt.Println(result)
+	c.JSON(http.StatusOK, result)
 }

@@ -2,8 +2,10 @@ package handler
 
 import (
 	"context"
+	"math"
 	"net/http"
 
+	"api-gateway/api/handler/models"
 	order "api-gateway/protos/order-service"
 
 	"github.com/gin-gonic/gin"
@@ -109,7 +111,22 @@ func (h *OrderHandler) ListOrders(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+	var result []models.Order
+	for _, i := range resp.Orders {
+		if !math.IsNaN(float64(i.TotalPrice)) {
+			result = append(result, models.Order{
+				Id:         i.Id,
+				UserId:     i.UserId,
+				ProductId:  i.ProductId,
+				Quantity:   int32(i.Quantity),
+				TotalPrice: i.TotalPrice,
+				CreatedAt:  i.CreatedAt,
+				UpdatedAt:  i.UpdatedAt,
+			})
+		}
+	}
+
+	c.JSON(http.StatusOK, result)
 }
 
 // // CreateOrders godoc
