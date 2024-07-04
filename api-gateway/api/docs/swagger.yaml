@@ -1,0 +1,467 @@
+definitions:
+  models.CreateOrder:
+    properties:
+      product_id:
+        type: string
+      quantity:
+        type: integer
+      status:
+        type: string
+      total_price:
+        type: number
+      user_id:
+        type: string
+    type: object
+  models.CreateProduct:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      stock:
+        type: integer
+    type: object
+  models.CreateUser:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  models.Order:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      product_id:
+        type: string
+      quantity:
+        type: integer
+      status:
+        type: string
+      total_price:
+        type: number
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.Product:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      stock:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  models.UpdateOrder:
+    properties:
+      quantity:
+        type: integer
+      status:
+        type: string
+      total_price:
+        type: number
+    type: object
+  models.UpdateProduct:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      stock:
+        type: integer
+    type: object
+  models.UpdateUser:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: This is Asem's E-Commerce
+  title: Welcome to swagger service
+  version: "1.0"
+paths:
+  /orders:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all orders
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Order'
+            type: array
+      summary: List all orders
+      tags:
+      - Orders
+    post:
+      consumes:
+      - application/json
+      description: API for creating multiple orders
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Order'
+      security:
+      - ApiKeyAuth: []
+      summary: Create multiple orders
+      tags:
+      - Orders
+  /orders/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: API for deleting order by ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Order'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete order by ID
+      tags:
+      - Orders
+    get:
+      consumes:
+      - application/json
+      description: API for getting order by ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Order'
+      security:
+      - ApiKeyAuth: []
+      summary: Get order by ID
+      tags:
+      - Orders
+    put:
+      consumes:
+      - application/json
+      description: API for updating order by ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: updateOrderModel
+        in: body
+        name: Order
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateOrder'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Order'
+      security:
+      - ApiKeyAuth: []
+      summary: Update order by ID
+      tags:
+      - Orders
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all products
+      parameters:
+      - description: Limit
+        in: query
+        name: limit
+        type: string
+      - description: Page
+        in: query
+        name: page
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Product'
+            type: array
+      summary: List all Products
+      tags:
+      - Products
+    post:
+      consumes:
+      - application/json
+      description: Api for creating a new product
+      parameters:
+      - description: createProductModel
+        in: body
+        name: Product
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateProduct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Product'
+      security:
+      - ApiKeyAuth: []
+      summary: CreateProduct
+      tags:
+      - Products
+  /products/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Api for deleting products by id
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Product'
+      security:
+      - ApiKeyAuth: []
+      summary: DeleteProduct
+      tags:
+      - Products
+    get:
+      consumes:
+      - application/json
+      description: Api for creatgetting a product by id
+      parameters:
+      - description: Product_id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Product'
+      security:
+      - ApiKeyAuth: []
+      summary: GetProduct
+      tags:
+      - Products
+    put:
+      consumes:
+      - application/json
+      description: Api for updating products by id
+      parameters:
+      - description: Product_id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: updateProductModel
+        in: body
+        name: Product
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateProduct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Product'
+      security:
+      - ApiKeyAuth: []
+      summary: UpdateProduct
+      tags:
+      - Products
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all users
+      parameters:
+      - description: Limit
+        in: query
+        name: limit
+        type: string
+      - description: Page
+        in: query
+        name: page
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+      summary: List all users
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Api for creating a new user
+      parameters:
+      - description: createUserModel
+        in: body
+        name: User
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+      security:
+      - ApiKeyAuth: []
+      summary: CreateUser
+      tags:
+      - Users
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Api for deleting users by id
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+      security:
+      - ApiKeyAuth: []
+      summary: DeleteUser
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: Api for getting user by id
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+      security:
+      - ApiKeyAuth: []
+      summary: GetUser
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Api for updating users by id
+      parameters:
+      - description: user_id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: updateUserModel
+        in: body
+        name: User
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+      security:
+      - ApiKeyAuth: []
+      summary: UpdateUser
+      tags:
+      - Users
+swagger: "2.0"

@@ -1,72 +1,52 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net"
-	"os"
-	"os/signal"
-	"user-service/internal/config"
-	"user-service/internal/interceptor/logger"
-	pb "user-service/proto"
-	storage "user-service/storage"
+	"user-service/config"
+	"user-service/pkg/logger"
+	userpb "user-service/protos/user-service"
+	"user-service/service"
 
-	"github.com/google/uuid"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 )
 
-type userServiceServer struct {
-	pb.UnimplementedUserServiceServer
-	db *storage.UserRepo
-}
-
-type User struct {
-	ID    uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
-	Name  string
-	Email string
-}
-
 func main() {
-	cfg, err := config.LoadConfig(".")
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		log.Fatalf("Error loading .env file")
 	}
 
-	db, err := storage.ConnectDB(*cfg)
+	logg := logger.New("debug", "user-service")
+	defer logger.Cleanup(logg)
+
+	cfg, err := config.LoadConfig(".")
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		log.Fatalf("Error loading config: %v", err)
+	}
+
+	db, err := sql.Open("postgres", "host="+cfg.Postgres.Host+" port="+cfg.Postgres.Port+" user="+cfg.Postgres.User+" password="+cfg.Postgres.Password+" dbname="+cfg.Postgres.Database+" sslmode=disable")
+	if err != nil {
+		log.Fatalf("failed to connect to the database: %v", err)
 	}
 	defer db.Close()
 
-	server := userServiceServer{db: storage.NewUserRepo(db)}
+	userService := service.NewUserService(db, logg)
 
-	address := fmt.Sprintf(":%s", cfg.UserServicePort)
-	lis, err := net.Listen("tcp", address)
+	fmt.Println("Server is running on port :", cfg.UserServicePort)
+	lis, err := net.Listen("tcp", ":"+cfg.UserServicePort)
 	if err != nil {
-		log.Fatalf("Failed to listen: %v", err)
+		log.Fatalf("failed to listen: %v", err)
 	}
 
 	s := grpc.NewServer()
-
-	pb.RegisterUserServiceServer(s, server)
-
-	log.Printf("Server listening on port %v", lis.Addr())
-
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		<-c
-		logger.InfoLogger.Println("Shutting down server...")
-		s.GracefulStop()
-		logger.InfoLogger.Println("Server stopped")
-		os.Exit(0)
-	}()
+	userpb.RegisterUserServiceServer(s, userService)
 
 	if err := s.Serve(lis); err != nil {
-		logger.ErrorLogger.Fatalf("Failed to serve: %v", err)
-	}
-
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("Failed to serve: %v", err)
+		log.Fatalf("failed to serve: %v", err)
 	}
 }

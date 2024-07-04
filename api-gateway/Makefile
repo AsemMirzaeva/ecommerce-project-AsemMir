@@ -1,24 +1,20 @@
-export POSTGRES_DB=postgres://postgres:1234@localhost:5432/examdb?sslmode=disable
+CURRENT_DIR=$(shell pwd)
 
-.PHONY: services-gen umigfile uup udown uforce tmigfile tup tdown tforce
+build:
+	CGO_ENABLED=0 GOOS=linux go build -mod=vendor -a -installsuffix cgo -o ${CURRENT_DIR}/bin/${APP} ${APP_CMD_DIR}/main.go
 
-gateway-gen:
-	@protoc \
-        --go_out=. \
-        --go-grpc_out=. \
-        --go_opt=paths=source_relative \
-        --go-grpc_opt=paths=source_relative \
-        ./proto/gateway.proto
+# proto-gen:
+# 	./scripts/gen-proto.sh	${CURRENT_DIR}
+# 	ls genproto/*.pb.go | xargs -n1 -IX bash -c "sed -e '/bool/ s/,omitempty//' X > X.tmp && mv X{.tmp,}"
 
-umigfile:
-	cd internal && migrate create -ext sql -dir migrations/ user
+gen-user:
+	protoc --go_out=. --go_opt=paths=source_relative     --go-grpc_out=. --go-grpc_opt=paths=source_relative     protos/user-service/user.proto
 
-uup:
-	cd internal && migrate -path migrations -database $(POSTGRES_DB) up
+gen-post:
+	protoc --go_out=. --go_opt=paths=source_relative     --go-grpc_out=. --go-grpc_opt=paths=source_relative     protos/product-service/product.proto
 
-udown:
-	cd internal && migrate -path migrations -database $(POSTGRES_DB) down
+gen-comment:
+	protoc --go_out=. --go_opt=paths=source_relative     --go-grpc_out=. --go-grpc_opt=paths=source_relative     protos/comment-service/comment.proto
 
-uforce:
-	cd internal && migrate -path migrations -database $(POSTGRES_DB) force $(version)	
-
+swag-gen:
+	swag init -g ./api/router.go -o api/docs
