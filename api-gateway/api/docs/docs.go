@@ -28,6 +28,20 @@ const docTemplate = `{
                     "Orders"
                 ],
                 "summary": "List all orders",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Page",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -46,7 +60,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "API for creating multiple orders",
+                "description": "API for creating a new order",
                 "consumes": [
                     "application/json"
                 ],
@@ -56,7 +70,18 @@ const docTemplate = `{
                 "tags": [
                     "Orders"
                 ],
-                "summary": "Create multiple orders",
+                "summary": "Create a new order",
+                "parameters": [
+                    {
+                        "description": "createOrderModel",
+                        "name": "Order",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateOrder"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -92,50 +117,6 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.Order"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "API for updating order by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Orders"
-                ],
-                "summary": "Update order by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Order ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "updateOrderModel",
-                        "name": "Order",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.UpdateOrder"
-                        }
                     }
                 ],
                 "responses": {
@@ -580,12 +561,6 @@ const docTemplate = `{
                 "quantity": {
                     "type": "integer"
                 },
-                "status": {
-                    "type": "string"
-                },
-                "total_price": {
-                    "type": "number"
-                },
                 "user_id": {
                     "type": "string"
                 }
@@ -674,20 +649,6 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
-                }
-            }
-        },
-        "models.UpdateOrder": {
-            "type": "object",
-            "properties": {
-                "quantity": {
-                    "type": "integer"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "total_price": {
-                    "type": "number"
                 }
             }
         },

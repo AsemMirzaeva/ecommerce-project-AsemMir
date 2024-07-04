@@ -66,34 +66,6 @@ func (h *OrderHandler) GetOrder(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// Update godoc
-// @Summary Update order by ID
-// @Security ApiKeyAuth
-// @Description API for updating order by ID
-// @Tags Orders
-// @Accept json
-// @Produce json
-// @Param id path string true "Order ID"
-// @Param Order body models.UpdateOrder true "updateOrderModel"
-// @Success 200 {object} models.Order
-// @Router /orders/{id} [put]
-func (h *OrderHandler) UpdateOrder(c *gin.Context) {
-	id := c.Param("id")
-	var req order.UpdateOrderRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	req.Id = id
-
-	resp, err := h.client.UpdateOrder(context.Background(), &req)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, resp)
-}
-
 // DeleteOrder godoc
 // @Summary Delete order by ID
 // @Security ApiKeyAuth
@@ -121,10 +93,17 @@ func (h *OrderHandler) DeleteOrder(c *gin.Context) {
 // @Tags Orders
 // @Accept  json
 // @Produce  json
+// @Param limit query string false "Limit"
+// @Param page query string false "Page"
 // @Success 200 {array} models.Order
 // @Router /orders [get]
 func (h *OrderHandler) ListOrders(c *gin.Context) {
-	req := order.ListOrdersRequest{}
+	limit := c.Query("limit")
+	page := c.Query("page")
+	req := order.ListOrdersRequest{
+		Limit: limit,
+		Page:  page,
+	}
 	resp, err := h.client.ListOrders(context.Background(), &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -133,37 +112,37 @@ func (h *OrderHandler) ListOrders(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// CreateOrders godoc
-// @Summary Create multiple orders
-// @Security ApiKeyAuth
-// @Description API for creating multiple orders
-// @Tags Orders
-// @Accept json
-// @Produce json
-// @Success 200 {object} models.Order
-// @Router /orders [post]
-func (h *OrderHandler) CreateOrders(c *gin.Context) {
-	stream, err := h.client.CreateOrders(context.Background())
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+// // CreateOrders godoc
+// // @Summary Create multiple orders
+// // @Security ApiKeyAuth
+// // @Description API for creating multiple orders
+// // @Tags Orders
+// // @Accept json
+// // @Produce json
+// // @Success 200 {object} models.Order
+// // @Router /orders [post]
+// func (h *OrderHandler) CreateOrders(c *gin.Context) {
+// 	stream, err := h.client.CreateOrders(context.Background())
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
 
-	var req order.CreateOrderRequest
-	for {
-		if err := c.ShouldBindJSON(&req); err != nil {
-			break
-		}
-		if err := stream.Send(&req); err != nil {
-			break
-		}
-	}
+// 	var req order.CreateOrderRequest
+// 	for {
+// 		if err := c.ShouldBindJSON(&req); err != nil {
+// 			break
+// 		}
+// 		if err := stream.Send(&req); err != nil {
+// 			break
+// 		}
+// 	}
 
-	resp, err := stream.CloseAndRecv()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+// 	resp, err := stream.CloseAndRecv()
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, resp)
-}
+// 	c.JSON(http.StatusOK, resp)
+// }

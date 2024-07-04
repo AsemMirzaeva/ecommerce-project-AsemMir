@@ -2,12 +2,11 @@ syntax = "proto3";
 
 package orproto;
 
-option go_package = "./orproto";
+option go_package = "./orderproto";
 
 service OrderService {
     rpc CreateOrder (CreateOrderRequest) returns (CreateOrderResponse);
     rpc GetOrder (GetOrderRequest) returns (GetOrderResponse);
-    rpc UpdateOrder (UpdateOrderRequest) returns (UpdateOrderResponse);
     rpc DeleteOrder (DeleteOrderRequest) returns (DeleteOrderResponse);
     rpc ListOrders (ListOrdersRequest) returns (ListOrdersResponse);
     rpc CreateOrders (stream CreateOrderRequest) returns (CreateOrdersResponse);
@@ -39,15 +38,6 @@ message GetOrderResponse {
     float total_price = 8;
 }
 
-message UpdateOrderRequest {
-    string id = 1;
-    string status = 2;
-}
-
-message UpdateOrderResponse {
-    string id = 1;
-    string status = 2;
-}
 
 message DeleteOrderRequest {
     string id = 1;
@@ -57,7 +47,10 @@ message DeleteOrderResponse {
     string message = 1;
 }
 
-message ListOrdersRequest {}
+message ListOrdersRequest {
+    string limit = 1;
+    string page = 2;
+}
 
 message ListOrdersResponse {
     repeated GetOrderResponse orders = 1;

@@ -5,10 +5,6 @@ definitions:
         type: string
       quantity:
         type: integer
-      status:
-        type: string
-      total_price:
-        type: number
       user_id:
         type: string
     type: object
@@ -68,15 +64,6 @@ definitions:
       updated_at:
         type: string
     type: object
-  models.UpdateOrder:
-    properties:
-      quantity:
-        type: integer
-      status:
-        type: string
-      total_price:
-        type: number
-    type: object
   models.UpdateProduct:
     properties:
       description:
@@ -119,6 +106,15 @@ paths:
       consumes:
       - application/json
       description: Retrieve a list of all orders
+      parameters:
+      - description: Limit
+        in: query
+        name: limit
+        type: string
+      - description: Page
+        in: query
+        name: page
+        type: string
       produces:
       - application/json
       responses:
@@ -134,7 +130,14 @@ paths:
     post:
       consumes:
       - application/json
-      description: API for creating multiple orders
+      description: API for creating a new order
+      parameters:
+      - description: createOrderModel
+        in: body
+        name: Order
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateOrder'
       produces:
       - application/json
       responses:
@@ -144,7 +147,7 @@ paths:
             $ref: '#/definitions/models.Order'
       security:
       - ApiKeyAuth: []
-      summary: Create multiple orders
+      summary: Create a new order
       tags:
       - Orders
   /orders/{id}:
@@ -190,34 +193,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get order by ID
-      tags:
-      - Orders
-    put:
-      consumes:
-      - application/json
-      description: API for updating order by ID
-      parameters:
-      - description: Order ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: updateOrderModel
-        in: body
-        name: Order
-        required: true
-        schema:
-          $ref: '#/definitions/models.UpdateOrder'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.Order'
-      security:
-      - ApiKeyAuth: []
-      summary: Update order by ID
       tags:
       - Orders
   /products:

@@ -15,8 +15,8 @@ type CreateOrder struct {
 	UserId     string  `json:"user_id"`
 	ProductId  string  `json:"product_id"`
 	Quantity   int32   `json:"quantity"`
-	Status     string  `json:"status"`
-	TotalPrice float32 `json:"total_price"`
+	Status     string  `json:"-"`
+	TotalPrice float32 `json:"-"`
 }
 
 type UpdateOrder struct {

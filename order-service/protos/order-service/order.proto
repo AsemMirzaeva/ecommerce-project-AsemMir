@@ -47,7 +47,10 @@ message DeleteOrderResponse {
     string message = 1;
 }
 
-message ListOrdersRequest {}
+message ListOrdersRequest {
+    string limit = 1;
+    string page = 2;
+}
 
 message ListOrdersResponse {
     repeated GetOrderResponse orders = 1;

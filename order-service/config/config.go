@@ -1,25 +1,62 @@
 package config
 
-import "os"
+import (
+	"log"
+	"os"
 
-type Config struct {
-    DBHost            string
-    DBPort            string
-    DBUser            string
-    DBPassword        string
-    DBName            string
-    PORT              string
-    USER_SERVICE_PORT string
+	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
+)
+
+type PostgresConfig struct {
+	Host     string
+	Port     string
+	User     string
+	Password string
+	Database string
 }
 
-func LoadConfig() Config {
-    return Config{
-        DBHost:            os.Getenv("DB_HOST"),
-        DBPort:            os.Getenv("DB_PORT"),
-        DBUser:            os.Getenv("DB_USER"),
-        DBPassword:        os.Getenv("DB_PASSWORD"),
-        DBName:            os.Getenv("DB_NAME"),
-        PORT:              os.Getenv("PORT"),
-        USER_SERVICE_PORT: os.Getenv("USER_SERVICE_PORT"),
-    }
+type Config struct {
+	Postgres PostgresConfig
+
+	OrderServiceHost string
+	OrderServicePort string
+
+	UserServiceHost string
+	UserServicePort string
+
+	ProductServiceHost string
+	ProductServicePort string
+}
+
+func LoadConfig(path string) (*Config, error) {
+	err := godotenv.Load(path + "/.env")
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
+	cfg := viper.New()
+	cfg.AutomaticEnv()
+
+	config := &Config{
+		Postgres: PostgresConfig{
+
+			Host:     cfg.GetString("POSTGRES_HOST"),
+			Port:     cfg.GetString("POSTGRES_PORT"),
+			User:     cfg.GetString("POSTGRES_USER"),
+			Password: cfg.GetString("POSTGRES_PASSWORD"),
+			Database: cfg.GetString("POSTGRES_DATABASE"),
+		},
+
+		OrderServiceHost: os.Getenv("ORDERSERVICE_HOST"),
+		OrderServicePort: os.Getenv("ORDERSERVICE_PORT"),
+
+		UserServiceHost: os.Getenv("USERSERVICE_HOST"),
+		UserServicePort: os.Getenv("USERSERVICE_PORT"),
+
+		ProductServiceHost: os.Getenv("PRODUCTSERVICE_HOST"),
+		ProductServicePort: os.Getenv("PRODUCTSERVICE_PORT"),
+	}
+
+	return config, nil
 }

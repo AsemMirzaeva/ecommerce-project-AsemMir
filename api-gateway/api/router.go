@@ -42,7 +42,7 @@ func NewRouter(conn, connP, orderConn *grpc.ClientConn) *gin.Engine {
 	router.GET("/orders/:id", orderHandler.GetOrder)
 	router.DELETE("/orders/:id", orderHandler.DeleteOrder)
 	router.GET("/orders", orderHandler.ListOrders)
-	router.POST("/orders/bulk", orderHandler.CreateOrders)
+	// router.POST("/orders/bulk", orderHandler.CreateOrders)
 
 	url := ginSwagger.URL("swaggerdoc.json")
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))

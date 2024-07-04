@@ -2,84 +2,111 @@ package service
 
 import (
 	"context"
-	"errors"
+	"database/sql"
+	"fmt"
+	"math"
 	"order-service/models"
-	prodpb "order-service/proto/productproto"
-	"order-service/repository"
+	l "order-service/pkg/logger"
+	pbo "order-service/protos/order-service"
+	pbp "order-service/protos/product-service"
+	pbu "order-service/protos/user-service"
+	grpcClient "order-service/service/grpc_client"
+	"order-service/storage"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"github.com/google/uuid"
 )
 
-type Service interface {
-	CreateOrder(userID, productID string, quantity int32) (*models.Order, error)
-	GetOrder(id string) (*models.Order, error)
-	DeleteOrder(id string) error
-	ListOrders() ([]*models.Order, error)
-	SetProductClient(client prodpb.ProductServiceClient)
-}
-
 type OrderService struct {
-	repo          repository.Repository
-	productClient prodpb.ProductServiceClient
+	pbo.UnimplementedOrderServiceServer
+	storage storage.IStorage
+	logger  l.Logger
+	client  grpcClient.IServiceManager
 }
 
-func NewOrderService(repo repository.Repository) *OrderService {
-	return &OrderService{repo: repo}
+func NewOrderService(db *sql.DB, log l.Logger, client grpcClient.IServiceManager) *OrderService {
+	return &OrderService{
+		storage: storage.NewStoragePg(db),
+		logger:  log,
+		client:  client,
+	}
 }
 
-func (s *OrderService) SetProductClient(client prodpb.ProductServiceClient) {
-	s.productClient = client
-}
-
-func (s *OrderService) CreateOrder(userID, productID string, quantity int32) (*models.Order, error) {
-	productReq := &prodpb.GetProductRequest{Id: productID}
-	productRes, err := s.productClient.GetProduct(context.Background(), productReq)
+func (s *OrderService) CreateOrder(ctx context.Context, req *pbo.CreateOrderRequest) (*pbo.CreateOrderResponse, error) {
+	productServiceClient := s.client.ProductService()
+	product, err := productServiceClient.GetProduct(ctx, &pbp.GetProductRequest{Id: req.ProductId})
 	if err != nil {
-		return nil, err
-	}
-	if productRes.Stock < quantity {
-		return nil, errors.New("insufficient stock")
-	}
-
-	totalPrice := float64(productRes.Price) * float64(quantity)
-
-	order := &models.Order{
-		ID:         generateID(), // generateID is a placeholder function to generate unique IDs
-		UserID:     userID,
-		ProductID:  productID,
-		Quantity:   quantity,
-		Status:     "Created",
-		TotalPrice: totalPrice,
-	}
-
-	if err := s.repo.CreateOrder(order); err != nil {
+		s.logger.Error(err.Error())
 		return nil, err
 	}
 
-	return order, nil
-}
-
-func (s *OrderService) GetOrder(id string) (*models.Order, error) {
-	return s.repo.GetOrder(id)
-}
-
-func (s *OrderService) DeleteOrder(id string) error {
-	return s.repo.DeleteOrder(id)
-}
-
-func (s *OrderService) ListOrders() ([]*models.Order, error) {
-	return s.repo.ListOrders()
-}
-
-func generateID() string {
-	return "unique-id"
-}
-
-func NewProductClient(address string) (prodpb.ProductServiceClient, error) {
-	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	userServiceClient := s.client.UserService()
+	user, err := userServiceClient.GetUser(ctx, &pbu.GetUserRequest{Id: req.UserId})
 	if err != nil {
+		s.logger.Error(err.Error())
 		return nil, err
 	}
-	return prodpb.NewProductServiceClient(conn), nil
+
+	order := models.Order{
+		ID:         uuid.New().String(),
+		UserID:     user.Id,
+		ProductID:  product.Id,
+		Quantity:   req.Quantity,
+		Status:     "created",
+		TotalPrice: float32(math.Round(float64(req.Quantity)*float64(product.Price)*100) / 100),
+	}
+	fmt.Println(order.TotalPrice)
+	err = s.storage.Order().CreateOrder(&order)
+	if err != nil {
+		s.logger.Error(err.Error())
+		return nil, err
+	}
+
+	return &pbo.CreateOrderResponse{
+		Id:         order.ID,
+		TotalPrice: float32(order.TotalPrice),
+	}, nil
+}
+
+func (s *OrderService) GetOrder(ctx context.Context, req *pbo.GetOrderRequest) (*pbo.GetOrderResponse, error) {
+	order, err := s.storage.Order().GetOrder(req.Id)
+	if err != nil {
+		s.logger.Error(err.Error())
+		return nil, err
+	}
+	return &pbo.GetOrderResponse{
+		Id:         order.ID,
+		UserId:     order.UserID,
+		ProductId:  order.ProductID,
+		Quantity:   order.Quantity,
+		TotalPrice: float32(order.TotalPrice),
+	}, nil
+}
+
+func (s *OrderService) DeleteOrder(ctx context.Context, req *pbo.DeleteOrderRequest) (*pbo.DeleteOrderResponse, error) {
+	err := s.storage.Order().DeleteOrder(req.Id)
+	if err != nil {
+		s.logger.Error(err.Error())
+		return nil, err
+	}
+	return &pbo.DeleteOrderResponse{Message: "Order deleted"}, nil
+}
+
+func (s *OrderService) ListOrders(ctx context.Context, req *pbo.ListOrdersRequest) (*pbo.ListOrdersResponse, error) {
+	orders, err := s.storage.Order().ListOrders()
+	if err != nil {
+		s.logger.Error(err.Error())
+		return &pbo.ListOrdersResponse{}, nil
+	}
+	var result []*pbo.GetOrderResponse
+	for _, order := range orders {
+		result = append(result, &pbo.GetOrderResponse{
+			Id:         order.ID,
+			UserId:     order.UserID,
+			ProductId:  order.ProductID,
+			Quantity:   order.Quantity,
+			TotalPrice: float32(order.TotalPrice),
+		})
+	}
+	return &pbo.ListOrdersResponse{Orders: result}, nil
+
 }

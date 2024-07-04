@@ -1,59 +1,61 @@
 package main
 
 import (
-    "database/sql"
-    "fmt"
-    "log"
-    "net"
-    "order-service/config"
-    "order-service/handlers"
-    "order-service/repository"
-    "order-service/service"
-    orderpb "order-service/proto/orderproto"
+	"database/sql"
+	"fmt"
+	"log"
+	"net"
+	"order-service/config"
+	"order-service/pkg/logger"
+	orderpb "order-service/protos/order-service"
+	"order-service/service"
 
-    "github.com/joho/godotenv"
-    _ "github.com/lib/pq"
-    "google.golang.org/grpc"
+	grpcClient "order-service/service/grpc_client"
+
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
-    err := godotenv.Load()
-    if err != nil {
-        log.Fatalf("Error loading .env file")
-    }
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
 
-    cfg := config.LoadConfig()
-    db, err := sql.Open("postgres", fmt.Sprintf(
-        "host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-        cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName,
-    ))
-    if err != nil {
-        log.Fatalf("failed to connect to the database: %v", err)
-    }
-    defer db.Close()
+	logg := logger.New("debug", "order-service")
+	defer logger.Cleanup(logg)
 
-    repo := repository.NewPostgresRepository(db)
-    svc := service.NewOrderService(repo)
+	cfg, err := config.LoadConfig(".")
+	if err != nil {
+		log.Fatalf("Error loading config: %v", err)
+	}
 
-    productClient, err := service.NewProductClient(":" + cfg.USER_SERVICE_PORT)
-    if err != nil {
-        log.Fatalf("failed to create product client: %v", err)
-    }
+	grpcClient, err := grpcClient.New(*cfg)
+	if err != nil {
+		log.Fatal("grpc client dail error", logger.Error(err))
+	}
 
-    svc.SetProductClient(productClient)
+	db, err := sql.Open("postgres", "host="+cfg.Postgres.Host+" port="+cfg.Postgres.Port+" user="+cfg.Postgres.User+" password="+cfg.Postgres.Password+" dbname="+cfg.Postgres.Database+" sslmode=disable")
+	if err != nil {
+		log.Fatalf("failed to connect to the database: %v", err)
+	}
+	defer db.Close()
 
-    server := handlers.NewServer(svc)
+	orderService := service.NewOrderService(db, logg, grpcClient)
 
-    fmt.Println("Server is running on port:", cfg.PORT)
-    lis, err := net.Listen("tcp", ":" + cfg.PORT)
-    if err != nil {
-        log.Fatalf("failed to listen: %v", err)
-    }
+	fmt.Println("Server is running on port :", cfg.OrderServicePort)
+	lis, err := net.Listen("tcp", ":"+cfg.OrderServicePort)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
 
-    s := grpc.NewServer()
-    orderpb.RegisterOrderServiceServer(s, server)
+	s := grpc.NewServer()
+	orderpb.RegisterOrderServiceServer(s, orderService)
+	reflection.Register(s)
 
-    if err := s.Serve(lis); err != nil {
-        log.Fatalf("failed to serve: %v", err)
-    }
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }

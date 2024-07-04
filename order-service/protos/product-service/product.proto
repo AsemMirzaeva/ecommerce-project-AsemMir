@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package proproto;
+package product;
 
-option go_package = "./productproto";
+option go_package = "./productpb";
 
 service ProductService {
     rpc AddProduct (AddProductRequest) returns (AddProductResponse);
@@ -69,7 +69,10 @@ message DeleteProductResponse {
     string message = 1;
 }
 
-message ListProductsRequest {}
+message ListProductsRequest {
+    string limit = 1;
+    string page = 2;
+}
 
 message ListProductsResponse {
     string id = 1;
